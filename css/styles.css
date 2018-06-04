@@ -1,0 +1,126 @@
+:root {
+  --scene-width: 300px;
+  --scene-height: 300px;
+  --scene-border: 0px;
+  --carousel-width: calc(var(--scene-width) - (var(--scene-border) * 2));
+  --carousel-height: calc(var(--scene-height) - (var(--scene-border) * 2));
+  --cell-width: calc(var(--scene-width) - 10px);
+  --cell-height: calc(var(--scene-height) - 10px);
+}
+
+html {
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+body, html {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  /* background: #c7dbf9; */
+  background:#ef9002;
+}
+
+section {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.carousel-cell {
+  /* padding: 10px; */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  left: calc((var(--carousel-width) - var(--cell-width)) / 2);
+  top: calc((var(--carousel-height) - var(--cell-height)) / 2);
+  position: absolute;
+  width: var(--cell-width);
+  height: var(--cell-height);
+  transition: transform 1s, opacity 1s; 
+  /* border-radius: 20px; */
+  /* backface-visibility: hidden; */
+}
+
+.carousel-cell:nth-child(9n+1) .card { background: hsla(  0, 70%, 50%, 1); }
+.carousel-cell:nth-child(9n+2) .card { background: hsla( 40, 70%, 50%, 1); }
+.carousel-cell:nth-child(9n+3) .card{ background: hsla( 80, 70%, 50%, 1); }
+.carousel-cell:nth-child(9n+4) .card{ background: hsla(120, 70%, 50%, 1); }
+.carousel-cell:nth-child(9n+5) .card{ background: hsla(160, 70%, 50%, 1); }
+.carousel-cell:nth-child(9n+6) .card{ background: hsla(200, 70%, 50%, 1); }
+.carousel-cell:nth-child(9n+7) .card{ background: hsla(240, 70%, 50%, 1); }
+.carousel-cell:nth-child(9n+8) .card{ background: hsla(380, 70%, 50%, 1); }
+.carousel-cell:nth-child(9n+0) .card{ background: hsla(320, 70%, 50%, 1); }
+
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 0px;
+  height: 0px;
+  border-radius: 10px;
+  transition: all 0.5s;
+}
+
+.card img {
+  top: 0;
+  position: absolute;
+  width: var(--cell-width);
+  height: var(--cell-height);
+  border-radius: 50%;
+  transition: all 0.5s;
+}
+
+ .card:hover {
+  height: var(--cell-height);
+  width: 250px;
+}
+
+.card:hover img {
+  border: 2px solid white;
+  top: 10px;
+  width: 180px;
+  height: 180px;
+}
+.card:hover h2 {
+  margin-top: 180px;
+}
+
+h2{
+  transition: all 0.5s;
+}
+
+h2, p, button {
+  color: white;
+}
+
+p {
+  padding-bottom: 5px;
+  font-style: italic;
+}
+
+button {
+  background: transparent;
+  padding: 5px 10px 5px 10px;
+  border-radius: 50px;
+  border: 2px solid white;
+  outline: none;
+  font-size: 16px;
+}
+
+h1 {
+  text-transform: uppercase;
+  color: white;
+}
