@@ -39,7 +39,7 @@
     carousel.setAttribute('cells', users.length) 
   }
   
-  start()
+  // start()
 
   // Promise.all()
   //   .then(([userData, streams]) => {
