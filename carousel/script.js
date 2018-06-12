@@ -10,7 +10,7 @@
 
     constructor(){
       super()
-      this._cells = null
+      // this._cells = null
       this._filter = null
       this.shadow = this.attachShadow({mode: 'open'})
       const tmp = document.importNode(thisDoc.querySelector('template').content, true)
