@@ -10,7 +10,7 @@
 
     constructor(){
       super()
-      // this._cells = null
+      this._cells = null
       this._filter = null
       this.shadow = this.attachShadow({mode: 'open'})
       const tmp = document.importNode(thisDoc.querySelector('template').content, true)
@@ -84,25 +84,29 @@
   }
 
   function filterOffline(cells, theta, radius){
+    let index = 0
     for(let i = 0, len = cells.length; i < len; i++){
       if(cells[i].querySelector('p').textContent !== 'Offline'){
         cells[i].style.opacity = 0
         cells[i].style.transform = 'none'
       } else {
         cells[i].style.opacity = 1
-        cells[i].style.transform = `rotateY(${theta * i}deg) translateZ(${radius}px)`
+        cells[i].style.transform = `rotateY(${theta * index}deg) translateZ(${radius}px)`
+        index++
       }
     }
   }
 
   function filterOnline(cells, theta, radius){
+    let index = 0
     for(let i = 0, len = cells.length; i < len; i++){
       if(cells[i].querySelector('p').textContent === 'Offline'){
         cells[i].style.opacity = 0
         cells[i].style.transform = 'none'
       } else {
         cells[i].style.opacity = 1
-        cells[i].style.transform = `rotateY(${theta * i}deg) translateZ(${radius}px)`
+        cells[i].style.transform = `rotateY(${theta * index}deg) translateZ(${radius}px)`
+        index++
       }
     }
   }
@@ -148,17 +152,15 @@
     
       if(e.target.className === 'prev'){
         currentIndex--
-        rotateCarousel(carousel)
       } else {
         currentIndex++
-        rotateCarousel(carousel)
-      }
+      } 
+      rotateCarousel(carousel)
     }
   }
 
   function rotateCarousel(carousel){
     let angel = theta * currentIndex * -1
-    console.log(angel)
     carousel.style.transform = `translateZ(-${radius}px) rotateY(${angel}deg)`
   }
 
@@ -195,17 +197,6 @@
       fragment.appendChild(clone)
     }
     return fragment
-  }
-
-  function getStreamInfo(stream) {
-    if(stream){
-      return {
-        game: stream.game,
-        status: stream.channel.status
-      }
-    } else {
-      return null
-    }
   }
 
   function myFetch(url) {
