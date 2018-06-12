@@ -132,12 +132,12 @@
       const len = currentUsers.length
       const fragment = new DocumentFragment()
       let clone, cell
-  
+      
       removeChildren(this)
 
       theta = 360 / len
       radius = Math.round((width / 2) / Math.tan(Math.PI / len)) || 1
-      
+
       for(let i = 0; i < len; i++){
         clone = document.importNode(tmp.content, true)
         cell = clone.querySelector('.carousel-cell')
