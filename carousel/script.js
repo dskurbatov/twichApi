@@ -1,7 +1,82 @@
 (function(){
   const userNames = ['ESL_SC2', 'OgamingSC2', 'cretetion', 'freecodecamp', 'storbeck', 'habathcx', 'RobotCaleb', 'noobs2ninjas']
   const thisDoc = document.currentScript.ownerDocument
-  let radius, currentIndex = 0, theta, carousel;
+  const tmp = document.querySelector('#carousel-cell-template')
+  let radius, theta, carousel, currentIndex = 0;
+  
+
+  const createStore = (reducer) => {
+    let state, listeners = []
+    const getState = () => state
+    const dispatch = (action) => {
+      state = reducer(state, action)
+      listeners.forEach(l => l(state))
+    }
+
+    const subscribe = (listener) => {
+      listeners.push(listener)
+      return () => {
+        listeners.filter(l => l != listener)
+      }
+    }
+
+    dispatch({})
+
+    return {
+      getState,
+      dispatch,
+      subscribe
+    }
+  }
+
+  const users = (state = [], action) => {
+    switch(action.type){
+      case 'INITIAL_DATA':
+        return [...action.data]
+      default: 
+        return state;
+    }
+  }
+
+  const filter = (state = 'All', action) => {
+    switch(action.type){
+      case 'SET_VISIBILITY_FILTER':
+        return action.filter
+      default:
+        return state;
+    }
+  }
+
+  const combineReducers = (reducers) => {
+    return (state = {}, action) => {
+      return Object.keys(reducers).reduce((nextState, key) => {
+        nextState[key] = reducers[key](state[key], action)
+        console.log(nextState)
+        return nextState
+      }, {})
+    }
+  }
+
+  const visibleUsers = (state) => {
+    const { users, filter } = state
+    switch(filter) {
+      case 'All':
+        return users
+      case 'Offline':
+        return users.filter(({ stream }) => stream === null)
+      case 'Online':
+        return users.filter(({ stream }) => stream !== null)
+      default: 
+        return users
+    }
+  }
+
+  const componentReducer = combineReducers({
+    users, 
+    filter
+  })
+
+  const store = createStore(componentReducer)
 
   class CarouselBox extends HTMLElement {
     static get observedAttributes(){
@@ -23,7 +98,11 @@
 
       const radioButtons = this.shadow.querySelectorAll('input[name="all-online-offline"]')
       radioButtons.forEach(radio => {
-        radio.addEventListener('change', onChange(this))
+        radio.addEventListener('change', onChange)
+      })
+
+      store.subscribe(({ filter }) => {
+        this.setAttribute('filter', filter)
       })
     }
 
@@ -39,10 +118,6 @@
       if(!carousel){
         carousel = this.shadow.querySelector('.carousel')
       }
-
-      if(!this._cells){
-        this._cells = document.querySelectorAll('.carousel-cell')
-      }
       
       switch(name){
         case 'filter':
@@ -53,112 +128,70 @@
 
     changeCarousel() {
       const width = carousel.offsetWidth
-      const cellsNumber = countCells(this._filter, this._cells)
+      const currentUsers = visibleUsers(store.getState())
+      const len = currentUsers.length
+      const fragment = new DocumentFragment()
+      let clone, cell
+  
+      removeChildren(this)
+
+      theta = 360 / len
+      radius = Math.round((width / 2) / Math.tan(Math.PI / len)) || 1
       
-      theta = 360 / cellsNumber
-      radius = Math.round((width / 2) / Math.tan(Math.PI / cellsNumber)) || 1
-      
-      if(this._filter === 'All'){
-        filterAll(this._cells, theta, radius)
-      } else if(this._filter === 'Offline') {
-        filterOffline(this._cells, theta, radius)
-      } else {
-        filterOnline(this._cells, theta, radius)
+      for(let i = 0; i < len; i++){
+        clone = document.importNode(tmp.content, true)
+        cell = clone.querySelector('.carousel-cell')
+        cell.querySelector('img').src = currentUsers[i].user.logo
+        cell.style.opacity = 1
+        cell.style.transform = `rotateY(${theta * i}deg) translateZ(${radius}px)`
+        fragment.appendChild(clone)
       }
+
+      this.appendChild(fragment)
       rotateCarousel(carousel)
     }
 
     connectedCallback(){
-      init().then(fragment => {
-        this.appendChild(fragment)
-        this.setAttribute('filter', 'All')
+      init().then(users => {
+        store.dispatch({
+          type: 'INITIAL_DATA',
+          data: users
+        })
       })
     }
   }
 
-  function filterAll(cells, theta, radius){
-    for(let i = 0, len = cells.length; i < len; i++){
-      cells[i].style.opacity = 1
-      cells[i].style.transform = `rotateY(${theta * i}deg) translateZ(${radius}px)` 
+  function removeChildren(parent){
+    while(parent.firstChild){
+      parent.removeChild(parent.firstChild)
     }
   }
 
-  function filterOffline(cells, theta, radius){
-    for(let i = 0, len = cells.length; i < len; i++){
-      if(cells[i].querySelector('p').textContent !== 'Offline'){
-        cells[i].style.opacity = 0
-        cells[i].style.transform = 'none'
-      } else {
-        cells[i].style.opacity = 1
-        cells[i].style.transform = `rotateY(${theta * i}deg) translateZ(${radius}px)`
-      }
-    }
-  }
-
-  function filterOnline(cells, theta, radius){
-    for(let i = 0, len = cells.length; i < len; i++){
-      if(cells[i].querySelector('p').textContent === 'Offline'){
-        cells[i].style.opacity = 0
-        cells[i].style.transform = 'none'
-      } else {
-        cells[i].style.opacity = 1
-        cells[i].style.transform = `rotateY(${theta * i}deg) translateZ(${radius}px)`
-      }
-    }
-  }
-
-  function countCells(filter, cells){
-    let count = 0;
-    switch(filter){
-      case 'All':
-        return cells.length
-        break;
-      case 'Offline':
-        cells.forEach(cell => {
-          if(offline(cell)){
-            count++
-          }
-        })
-        return count
-      case 'Online':
-        cells.forEach(cell => {
-          if(!offline(cell)){
-            count++
-          }
-        })
-        return count
-      default:
-        return cells.length
-    }
-  }
-
-  function offline(cell){
-    return cell.querySelector('p').textContent === 'Offline'
-  }
-
-  function onChange(carousel){
-    return function(e){
-      carousel.setAttribute('filter', this.value)
-    }
+  function onChange(e){
+    store.dispatch({
+      type: 'SET_VISIBILITY_FILTER',
+      filter: this.value
+    })
   }
 
   function onClick(carousel) {
     return function(e) {
       e.preventDefault()
-    
+
       if(e.target.className === 'prev'){
         currentIndex--
+        // currentIndex = currentIndex % cellsNumber
         rotateCarousel(carousel)
       } else {
         currentIndex++
+        // currentIndex = currentIndex % cellsNumber
         rotateCarousel(carousel)
       }
     }
   }
 
   function rotateCarousel(carousel){
-    let angel = theta * currentIndex * -1
-    console.log(angel)
+    let angel = theta * currentIndex * -1 
     carousel.style.transform = `translateZ(-${radius}px) rotateY(${angel}deg)`
   }
 
@@ -180,32 +213,16 @@
   }
 
   async function init(){
-    const tmp = document.querySelector('#carousel-cell-template')
-    const fragment = new DocumentFragment()
     const [users, streams] = await getData()
-    let clone, stream, user
-  
+    const usersArray = []
+    
     for(let i = 0, len = userNames.length; i < len; i++){
-      stream = streams[i].stream, user = users[i]
-      
-      clone = document.importNode(tmp.content, true)
-      clone.querySelector('img').src = user.logo
-      clone.querySelector('h2').textContent = user.display_name
-      clone.querySelector('p').textContent = (stream) ? `${stream.game} ${stream.channel.status}` : 'Offline'
-      fragment.appendChild(clone)
+      usersArray.push({
+        user: users[i],
+        stream: streams[i].stream
+      })
     }
-    return fragment
-  }
-
-  function getStreamInfo(stream) {
-    if(stream){
-      return {
-        game: stream.game,
-        status: stream.channel.status
-      }
-    } else {
-      return null
-    }
+    return usersArray
   }
 
   function myFetch(url) {
@@ -215,3 +232,63 @@
 
   customElements.define('carousel-box', CarouselBox)
 })()
+
+// function filterAll(cells, theta, radius){
+  //   for(let i = 0, len = cells.length; i < len; i++){
+  //     cells[i].style.opacity = 1
+  //     cells[i].style.transform = `rotateY(${theta * i}deg) translateZ(${radius}px)` 
+  //   }
+  // }
+
+  // function filterOffline(cells, theta, radius){
+  //   for(let i = 0, len = cells.length; i < len; i++){
+  //     if(cells[i].querySelector('p').textContent !== 'Offline'){
+  //       cells[i].style.opacity = 0
+  //       cells[i].style.transform = 'none'
+  //     } else {
+  //       cells[i].style.opacity = 1
+  //       cells[i].style.transform = `rotateY(${theta * i}deg) translateZ(${radius}px)`
+  //     }
+  //   }
+  // }
+
+  // function filterOnline(cells, theta, radius){
+  //   for(let i = 0, len = cells.length; i < len; i++){
+  //     if(cells[i].querySelector('p').textContent === 'Offline'){
+  //       cells[i].style.opacity = 0
+  //       cells[i].style.transform = 'none'
+  //     } else {
+  //       cells[i].style.opacity = 1
+  //       cells[i].style.transform = `rotateY(${theta * i}deg) translateZ(${radius}px)`
+  //     }
+  //   }
+  // }
+
+  // function countCells(filter, cells){
+  //   let count = 0;
+  //   switch(filter){
+  //     case 'All':
+  //       return cells.length
+  //       break;
+  //     case 'Offline':
+  //       cells.forEach(cell => {
+  //         if(offline(cell)){
+  //           count++
+  //         }
+  //       })
+  //       return count
+  //     case 'Online':
+  //       cells.forEach(cell => {
+  //         if(!offline(cell)){
+  //           count++
+  //         }
+  //       })
+  //       return count
+  //     default:
+  //       return cells.length
+  //   }
+  // }
+
+  // function offline(cell){
+  //   return cell.querySelector('p').textContent === 'Offline'
+  // }
