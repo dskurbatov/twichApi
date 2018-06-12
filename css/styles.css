@@ -25,7 +25,8 @@ body, html {
 
 body {
   /* background: #c7dbf9; */
-  background:#ef9002;
+  /* background:#ef9002; */
+  background:#efece8
 }
 
 section {
@@ -107,6 +108,7 @@ h2, p, button {
 }
 
 p {
+  text-align: center;
   padding-bottom: 5px;
   font-style: italic;
 }
@@ -122,5 +124,5 @@ button {
 
 h1 {
   text-transform: uppercase;
-  color: white;
+  color: #63615d;
 }

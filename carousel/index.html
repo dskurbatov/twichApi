@@ -20,6 +20,7 @@
       border: var(--scene-border) solid black;
       position: relative;
       perspective: 1000px;
+      perspective-origin: top;
     }
 
     .carousel {
@@ -47,8 +48,12 @@
       transition: transform 1s, opacity 1s;
     } */
 
-    .buttons {
+    .buttons, .radio {
       margin-top: 5px;
+    }
+    
+    label {
+      font-size: 20px;
     }
 
     button {
@@ -59,7 +64,7 @@
       background: transparent;
       border: none;
       outline: none;
-      border: 2px solid white;
+      border: 2px solid #63615d;
       border-radius: 50%
     }
 
@@ -68,7 +73,7 @@
       position: absolute;
       width: 20px;
       height: 20px;
-      border: 2px solid white;
+      border: 2px solid #63615d;
       top: 50%;
       left: 50%; 
     }
@@ -83,7 +88,7 @@
       position: absolute;
       width:25px;
       height: 2px;
-      background: white;
+      background: #63615d;
       left: 0;
       transform: translate(50%, -50%)
     }
@@ -103,6 +108,20 @@
     <div class="buttons">
       <button class="prev"></button>
       <button class="next"></button>
+    </div>
+    <div class="radio">
+      <label>
+          <input type="radio" name="all-online-offline" value="All" checked />
+          All
+      </label>
+      <label>
+          <input type="radio" name="all-online-offline" value="Online">
+          Online
+      </label>
+      <label>
+        <input type="radio" name="all-online-offline" value="Offline">
+        Offline
+      </label>
     </div>
   </section>
 </template>
